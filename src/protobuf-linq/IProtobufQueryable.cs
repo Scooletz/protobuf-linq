@@ -18,7 +18,6 @@ namespace ProtoBuf
     /// <typeparam name="TSource">The root type of the deserialized items. As in standard protobuf.</typeparam>
     public interface IProtobufQueryable<TSource> : IOfType, ISelect<TSource>, IWhere<TSource>
     {
-        IEnumerable<TSource> AsEnumerable();
     }
 
     public interface IOfType

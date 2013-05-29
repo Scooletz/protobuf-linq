@@ -15,12 +15,12 @@ namespace ProtoBuf
     {
         public static TSource ElementAtOrDefault<TSource>(this IProtobufQueryable<TSource> source, int index)
         {
-            return source.Skip(index).AsEnumerable().FirstOrDefault();
+            return source.Skip(index).Select(t => t).FirstOrDefault();
         }
 
         public static TSource ElementAt<TSource>(this IProtobufQueryable<TSource> source, int index)
         {
-            return source.Skip(index).AsEnumerable().First();
+            return source.Skip(index).Select(t => t).First();
         }
 
         public static double Average<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, double>> selector)
@@ -65,20 +65,20 @@ namespace ProtoBuf
 
         public static bool Any<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         {
-            return source.Where(predicate).AsEnumerable().Any();
+            return source.Where(predicate).Select(t=>t).Any();
         }
-        
+
         public static bool All<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         {
             throw new NotImplementedException();
         }
 
-        public static IProtobufQueryable<TSource> Where<TSource>(this IProtobufQueryable<TSource> source,Expression<Func<TSource, bool>> predicate)
+        public static IProtobufQueryable<TSource> Where<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         {
             return source.Where(Expression.Lambda<Func<TSource, int, bool>>(predicate.Body, predicate.Parameters[0], Expression.Parameter(typeof(int))));
-        }    
-        
-        public static IEnumerable<TResult> Select<TSource,TResult>(this IProtobufQueryable<TSource> source,Expression<Func<TSource, TResult>> selector)
+        }
+
+        public static IEnumerable<TResult> Select<TSource, TResult>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, TResult>> selector)
         {
             return source.Select(Expression.Lambda<Func<TSource, int, TResult>>(selector.Body, selector.Parameters[0], Expression.Parameter(typeof(int))));
         }
