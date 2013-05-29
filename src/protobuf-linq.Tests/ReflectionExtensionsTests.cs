@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using NUnit.Framework;
-using ProtoBuf.Filters;
+using ProtoBuf.LinqImpl;
 
 namespace protobuf_linq.Tests
 {

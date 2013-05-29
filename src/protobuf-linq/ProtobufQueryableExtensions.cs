@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -64,12 +65,22 @@ namespace ProtoBuf
 
         public static bool Any<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         {
-            return source.Where(predicate).Any();
+            return source.Where(predicate).AsEnumerable().Any();
         }
         
         public static bool All<TSource>(this IProtobufQueryable<TSource> source, Expression<Func<TSource, bool>> predicate)
         {
             throw new NotImplementedException();
+        }
+
+        public static IProtobufQueryable<TSource> Where<TSource>(this IProtobufQueryable<TSource> source,Expression<Func<TSource, bool>> predicate)
+        {
+            return source.Where(Expression.Lambda<Func<TSource, int, bool>>(predicate.Body, predicate.Parameters[0], Expression.Parameter(typeof(int))));
+        }    
+        
+        public static IEnumerable<TResult> Select<TSource,TResult>(this IProtobufQueryable<TSource> source,Expression<Func<TSource, TResult>> selector)
+        {
+            return source.Select(Expression.Lambda<Func<TSource, int, TResult>>(selector.Body, selector.Parameters[0], Expression.Parameter(typeof(int))));
         }
     }
 }

@@ -16,14 +16,9 @@ namespace ProtoBuf
     /// Future optimizations might unwind the rest of methods.
     /// </remarks>
     /// <typeparam name="TSource">The root type of the deserialized items. As in standard protobuf.</typeparam>
-    public interface IProtobufQueryable<TSource> : IAny, IOfType, ISelect<TSource>, IWhere<TSource>
+    public interface IProtobufQueryable<TSource> : IOfType, ISelect<TSource>, IWhere<TSource>
     {
         IEnumerable<TSource> AsEnumerable();
-    }
-
-    public interface IAny
-    {
-        bool Any();
     }
 
     public interface IOfType
@@ -33,13 +28,11 @@ namespace ProtoBuf
 
     public interface ISelect<TSource>
     {
-        IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, TResult>> selector);
         IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector);
     }
 
     public interface IWhere<TSource>
     {
-        IProtobufQueryable<TSource> Where(Expression<Func<TSource, bool>> predicate);
         IProtobufQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate);
     }
 }
