@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq.Expressions;
+using System.Linq;
+using System.Reflection;
+using ProtoBuf.Meta;
 
 namespace ProtoBuf.LinqImpl
 {
@@ -8,19 +12,24 @@ namespace ProtoBuf.LinqImpl
     {
         private static readonly Expression<Func<TSource, int, bool>> TrueWhereClauseNullObject =
             Expression.Lambda<Func<TSource, int, bool>>(Expression.Constant(true),
-                                                        Expression.Parameter(typeof (TSource)),
-                                                        Expression.Parameter(typeof (int)));
+                                                        Expression.Parameter(typeof(TSource)),
+                                                        Expression.Parameter(typeof(int)));
 
         private readonly Expression<Func<TSource, int, bool>> _whereClause;
+        private readonly PrefixStyle _prefix;
+        private readonly Stream _source;
+        private readonly RuntimeTypeModel _model = RuntimeTypeModel.Default;
 
-        public ProtobufQueryable()
-            : this (TrueWhereClauseNullObject)
+        public ProtobufQueryable(PrefixStyle prefix, Stream source)
+            : this(TrueWhereClauseNullObject, prefix, source)
         {
         }
 
-        private ProtobufQueryable(Expression<Func<TSource, int, bool>> whereClause)
+        private ProtobufQueryable(Expression<Func<TSource, int, bool>> whereClause, PrefixStyle prefix, Stream source)
         {
             _whereClause = whereClause;
+            _prefix = prefix;
+            _source = source;
         }
 
         public IEnumerable<TResult> OfType<TResult>()
@@ -30,6 +39,32 @@ namespace ProtoBuf.LinqImpl
 
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
+            var visitor = new MemberInfoGatheringVisitor(typeof(TSource));
+            visitor.Visit(_whereClause);
+            visitor.Visit(selector);
+
+            var members = visitor.Members.Distinct().OrderBy(mi => mi.Name).ToArray();
+
+            var typeWithReducedMembers = GetTypeReplacingTSource(members);
+
+            var newDeserializedItemParam = Expression.Parameter(typeWithReducedMembers);
+
+            // build new where clause, with a parameter of reduced number of ValueMembers
+            var newPredicateType = typeof(Func<,,>).MakeGenericType(typeWithReducedMembers, typeof(int), typeof(bool));
+            var newPredicateBody = ParameterReplacingVisitor.ReplaceParameter(_whereClause.Body, WhereItemParam, newDeserializedItemParam);
+            var newWhere = Expression.Lambda(newPredicateType, newPredicateBody, newDeserializedItemParam, WhereIndexParam).Compile();
+
+            // build new selector, with a parameter of reduced number of ValueMembers
+            var newSelectorType = typeof(Func<,,>).MakeGenericType(typeWithReducedMembers, typeof(int), typeof(TResult));
+            var newSelectorBody = ParameterReplacingVisitor.ReplaceParameter(selector.Body, selector.Parameters[0], newDeserializedItemParam);
+            var newSelector = Expression.Lambda(newSelectorType, newSelectorBody, newDeserializedItemParam, selector.Parameters[1]).Compile();
+
+            var enumerableType = typeof (EnumerableSelector<,>).MakeGenericType(typeWithReducedMembers, typeof (TResult));
+            return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
+        }
+
+        private Type GetTypeReplacingTSource(MemberInfo[] members)
+        {
             throw new NotImplementedException();
         }
 
@@ -37,35 +72,22 @@ namespace ProtoBuf.LinqImpl
         {
             var body = predicate.Body;
 
-            body = ReplaceParameter(body, predicate.Parameters[0], _whereClause.Parameters[0]);
-            body = ReplaceParameter(body, predicate.Parameters[1], _whereClause.Parameters[1]);
+            body = ParameterReplacingVisitor.ReplaceParameter(body, predicate.Parameters[0], WhereItemParam);
+            body = ParameterReplacingVisitor.ReplaceParameter(body, predicate.Parameters[1], WhereIndexParam);
 
             var combinedWhere = Expression.Lambda<Func<TSource, int, bool>>(Expression.And(_whereClause, body), _whereClause.Parameters);
 
-            return new ProtobufQueryable<TSource>(combinedWhere);
+            return new ProtobufQueryable<TSource>(combinedWhere, _prefix, _source);
         }
 
-        private static Expression ReplaceParameter(Expression body, ParameterExpression oldParam, ParameterExpression newParam)
+        private ParameterExpression WhereIndexParam
         {
-            return new ParameterReplacingVisitor(oldParam, newParam).Visit(body);
+            get { return _whereClause.Parameters[1]; }
         }
 
-        private class ParameterReplacingVisitor : ExpressionVisitor
+        private ParameterExpression WhereItemParam
         {
-            private readonly ParameterExpression _oldParam;
-            private readonly ParameterExpression _newParam;
-
-
-            public ParameterReplacingVisitor(ParameterExpression oldParam, ParameterExpression newParam)
-            {
-                _oldParam = oldParam;
-                _newParam = newParam;
-            }
-
-            protected override Expression VisitParameter(ParameterExpression node)
-            {
-                return ReferenceEquals(node, _oldParam) ? _newParam : node;
-            }
+            get { return _whereClause.Parameters[0]; }
         }
     }
 }
