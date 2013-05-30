@@ -59,7 +59,7 @@ namespace ProtoBuf.LinqImpl
             var newSelectorBody = ParameterReplacingVisitor.ReplaceParameter(selector.Body, selector.Parameters[0], newDeserializedItemParam);
             var newSelector = Expression.Lambda(newSelectorType, newSelectorBody, newDeserializedItemParam, selector.Parameters[1]).Compile();
 
-            var enumerableType = typeof (EnumerableSelector<,>).MakeGenericType(typeWithReducedMembers, typeof (TResult));
+            var enumerableType = typeof (ProtoLinqEnumerable<,>).MakeGenericType(typeWithReducedMembers, typeof (TResult));
             return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
         }
 

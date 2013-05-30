@@ -45,9 +45,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ProjectionTypeBuilderTests.cs" />
+    <Compile Include="Impl\ProjectionTypeBuilderTests.cs" />
+    <Compile Include="Impl\ProtobufExtensionsTests.cs" />
+    <Compile Include="Impl\ReflectionExtensionsTests.cs" />
+    <Compile Include="NoDefaultRuntimeTypeModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReflectionExtensionsTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

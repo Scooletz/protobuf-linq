@@ -43,7 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IProtobufQueryable.cs" />
-    <Compile Include="LinqImpl\EnumerableSelector.cs" />
+    <Compile Include="LinqImpl\ProtoLinqEnumerable.cs" />
     <Compile Include="LinqImpl\MemberInfoGatheringVisitor.cs" />
     <Compile Include="LinqImpl\ParameterReplacingVisitor.cs" />
     <Compile Include="LinqImpl\ProjectionTypeBuilder.cs" />

@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.IO;
+using System.Reflection;
 using ProtoBuf.Meta;
 
 namespace ProtoBuf.LinqImpl
@@ -8,9 +9,12 @@ namespace ProtoBuf.LinqImpl
         public static MetaType GetHierarchyRoot(this MetaType metaType)
         {
             var hierarchyRoot = metaType.BaseType;
-            while (metaType.BaseType != null)
+            if (hierarchyRoot == null)
+                return metaType;
+
+            while (hierarchyRoot.BaseType != null)
             {
-                hierarchyRoot = metaType.BaseType;
+                hierarchyRoot = hierarchyRoot.BaseType;
             }
 
             return hierarchyRoot ?? metaType;
@@ -38,6 +42,16 @@ namespace ProtoBuf.LinqImpl
         public static DataFormat GetDataFormat(this SubType subType)
         {
             return (DataFormat) DataFormat.GetValue(subType);
+        }
+
+        public static void SerializeWithLengthPrefix<T>(this RuntimeTypeModel model, Stream destination, T instance, PrefixStyle style)
+        {
+            model.SerializeWithLengthPrefix(destination, instance, typeof(T), style, 0);
+        }
+
+        public static void SerializeWithLengthPrefix<T>(this RuntimeTypeModel model, Stream destination, T instance, PrefixStyle style, int fieldNumber)
+        {
+            model.SerializeWithLengthPrefix(destination, instance, typeof (T), style, fieldNumber);
         }
     }
 }
