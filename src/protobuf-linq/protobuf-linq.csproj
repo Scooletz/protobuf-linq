@@ -46,6 +46,8 @@
     <Compile Include="LinqImpl\EnumerableSelector.cs" />
     <Compile Include="LinqImpl\MemberInfoGatheringVisitor.cs" />
     <Compile Include="LinqImpl\ParameterReplacingVisitor.cs" />
+    <Compile Include="LinqImpl\ProjectionTypeBuilder.cs" />
+    <Compile Include="LinqImpl\ProtobufExtensions.cs" />
     <Compile Include="LinqImpl\ProtobufQueryable.cs" />
     <Compile Include="LinqImpl\ReflectionExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
