@@ -5,6 +5,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using ProtoBuf.Meta;
@@ -13,11 +14,32 @@ namespace ProtoBuf.LinqImpl
 {
     public sealed class ProjectionTypeBuilder
     {
+        private static readonly ConditionalWeakTable<RuntimeTypeModel, ProjectionTypeBuilder> Builders = new ConditionalWeakTable<RuntimeTypeModel, ProjectionTypeBuilder>();
         private const TypeAttributes ProjectionTypeAttributes = TypeAttributes.AnsiClass|TypeAttributes.AutoClass|TypeAttributes.Class|TypeAttributes.BeforeFieldInit|TypeAttributes.Public;
         private readonly ModuleBuilder _module;
         private readonly RuntimeTypeModel _model;
         private readonly ConcurrentDictionary<Key, Type> _cache = new ConcurrentDictionary<Key, Type>();
         private readonly string _namespace;
+
+        /// <summary>
+        /// Gets the <see cref="ProjectionTypeBuilder"/> built for the specified <paramref name="model"/>.
+        /// </summary>
+        public static ProjectionTypeBuilder GetCachedFor(RuntimeTypeModel model)
+        {
+            ProjectionTypeBuilder builder;
+            if (Builders.TryGetValue(model, out builder))
+                return builder;
+
+            lock (Builders)
+            {
+                if (Builders.TryGetValue(model, out builder))
+                    return builder;
+
+                builder = new ProjectionTypeBuilder(model);
+                Builders.Add(model, builder);
+                return builder;
+            }
+        }
 
         public ProjectionTypeBuilder(RuntimeTypeModel model)
         {

@@ -18,18 +18,19 @@ namespace ProtoBuf.LinqImpl
         private readonly Expression<Func<TSource, int, bool>> _whereClause;
         private readonly PrefixStyle _prefix;
         private readonly Stream _source;
-        private readonly RuntimeTypeModel _model = RuntimeTypeModel.Default;
+        private readonly RuntimeTypeModel _model;
 
-        public ProtobufQueryable(PrefixStyle prefix, Stream source)
-            : this(TrueWhereClauseNullObject, prefix, source)
+        public ProtobufQueryable(RuntimeTypeModel model, Stream source, PrefixStyle prefix)
+            : this(model, source, prefix, TrueWhereClauseNullObject)
         {
         }
 
-        private ProtobufQueryable(Expression<Func<TSource, int, bool>> whereClause, PrefixStyle prefix, Stream source)
+        private ProtobufQueryable(RuntimeTypeModel model, Stream source, PrefixStyle prefix, Expression<Func<TSource, int, bool>> whereClause)
         {
             _whereClause = whereClause;
             _prefix = prefix;
             _source = source;
+            _model = model;
         }
 
         public IEnumerable<TResult> OfType<TResult>()
@@ -45,7 +46,7 @@ namespace ProtoBuf.LinqImpl
 
             var members = visitor.Members.Distinct().OrderBy(mi => mi.Name).ToArray();
 
-            var typeWithReducedMembers = GetTypeReplacingTSource(members);
+            var typeWithReducedMembers = GetTypeReplacingTSource(typeof(TSource), members);
 
             var newDeserializedItemParam = Expression.Parameter(typeWithReducedMembers);
 
@@ -59,13 +60,14 @@ namespace ProtoBuf.LinqImpl
             var newSelectorBody = ParameterReplacingVisitor.ReplaceParameter(selector.Body, selector.Parameters[0], newDeserializedItemParam);
             var newSelector = Expression.Lambda(newSelectorType, newSelectorBody, newDeserializedItemParam, selector.Parameters[1]).Compile();
 
-            var enumerableType = typeof (ProtoLinqEnumerable<,>).MakeGenericType(typeWithReducedMembers, typeof (TResult));
+            var enumerableType = typeof(ProtoLinqEnumerable<,>).MakeGenericType(typeWithReducedMembers, typeof(TResult));
             return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
         }
 
-        private Type GetTypeReplacingTSource(MemberInfo[] members)
+        private Type GetTypeReplacingTSource(Type type, MemberInfo[] members)
         {
-            throw new NotImplementedException();
+            return ProjectionTypeBuilder.GetCachedFor(_model)
+                .GetTypeForProjection(type, members);
         }
 
         public IProtobufQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate)
@@ -75,9 +77,9 @@ namespace ProtoBuf.LinqImpl
             body = ParameterReplacingVisitor.ReplaceParameter(body, predicate.Parameters[0], WhereItemParam);
             body = ParameterReplacingVisitor.ReplaceParameter(body, predicate.Parameters[1], WhereIndexParam);
 
-            var combinedWhere = Expression.Lambda<Func<TSource, int, bool>>(Expression.And(_whereClause, body), _whereClause.Parameters);
+            var combinedWhere = Expression.Lambda<Func<TSource, int, bool>>(Expression.And(_whereClause.Body, body), _whereClause.Parameters);
 
-            return new ProtobufQueryable<TSource>(combinedWhere, _prefix, _source);
+            return new ProtobufQueryable<TSource>(_model, _source, _prefix, combinedWhere);
         }
 
         private ParameterExpression WhereIndexParam

@@ -41,7 +41,7 @@ namespace ProtoBuf.LinqImpl
 
         private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, out object value)
         {
-            value = _model.DeserializeWithLengthPrefix(source, (object)null, (Type)null, style, 0, resolver);
+            value = _model.DeserializeWithLengthPrefix(source, null, typeof(TSource), style, 0, resolver);
             return value != null;
         } 
 

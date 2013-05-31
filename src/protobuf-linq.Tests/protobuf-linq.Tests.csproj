@@ -48,6 +48,7 @@
     <Compile Include="Impl\ProjectionTypeBuilderTests.cs" />
     <Compile Include="Impl\ProtobufExtensionsTests.cs" />
     <Compile Include="Impl\ReflectionExtensionsTests.cs" />
+    <Compile Include="IntegrationScenarios.cs" />
     <Compile Include="NoDefaultRuntimeTypeModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

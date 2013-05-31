@@ -12,7 +12,7 @@ namespace ProtoBuf
     /// For more information about 'ab'using LINQ, visit: http://bartdesmet.net/blogs/bart/archive/2010/01/01/the-essence-of-linq-minlinq.aspx
     /// 
     /// The interface provides a minimal set, allowing some optimizaitons to occur. The two root methods are these provided with <see cref="IWhere{TSource}"/> interface
-    /// and <see cref="ISelect{TSource}"/> interface. All the others can be translated into these two (see <see cref="ProtobufQueryableExtensions"/> for more information). 
+    /// and <see cref="ISelect{TSource}"/> interface. All the others can be translated into these two (see <see cref="ProtobufLINQExtensions"/> for more information). 
     /// Future optimizations might unwind the rest of methods.
     /// </remarks>
     /// <typeparam name="TSource">The root type of the deserialized items. As in standard protobuf.</typeparam>
