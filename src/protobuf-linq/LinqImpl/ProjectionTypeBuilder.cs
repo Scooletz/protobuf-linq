@@ -18,7 +18,7 @@ namespace ProtoBuf.Linq.LinqImpl
         private const TypeAttributes ProjectionTypeAttributes = TypeAttributes.AnsiClass|TypeAttributes.AutoClass|TypeAttributes.Class|TypeAttributes.BeforeFieldInit|TypeAttributes.Public;
         private readonly ModuleBuilder _module;
         private readonly RuntimeTypeModel _model;
-        private readonly ConcurrentDictionary<Key, Type> _cache = new ConcurrentDictionary<Key, Type>();
+        private readonly ConcurrentDictionary<Key, MetaType> _hierarchyRootCache = new ConcurrentDictionary<Key, MetaType>();
         private readonly string _namespace;
 
         /// <summary>
@@ -53,35 +53,19 @@ namespace ProtoBuf.Linq.LinqImpl
 
         public Type GetTypeForProjection(Type originalDeserializedType, MemberInfo[] projectedMembers)
         {
-            var key = new Key(originalDeserializedType, projectedMembers);
-            return _cache.GetOrAdd(key, BuildType);
+            var key = new Key(projectedMembers);
+            var hierarchyRoot = _hierarchyRootCache.GetOrAdd(key, k => BuildType(originalDeserializedType, k.Value, projectedMembers));
+
+            return FindInSubtypes(hierarchyRoot, originalDeserializedType);
         }
 
-        private Type BuildType(Key key)
+        private MetaType BuildType(Type originalDeserializedType, string uniqueSuffix, MemberInfo[] members)
         {
-            var originalTypeModel = _model[key.Type];
-
-            // the new type should have all the needed fields up to the root of the hierarchy
-            // all other branches of the tree may not have any members, as they are skipped in the projection
-            // NOTE: possible way of optimization is finding selected members across differen _model & different levels, to skip some types being created
-
-            var str = new StringBuilder(1024)
-                .Append(originalTypeModel.Type.FullName)
-                .Append(string.Join(",", key.TypeMembers.Select(m => m.Name)))
-                .ToString();
-
-            string uniqueTypeSuffix;
-            using (var sha1 = SHA1.Create())
-            {
-                uniqueTypeSuffix= BitConverter.ToString(sha1.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", "");
-            }
-
-            var groupedByType = key.TypeMembers.GroupBy(mi => mi.DeclaringType).ToDictionary(g=>g.Key, g=>g);
+            var originalTypeModel = _model[originalDeserializedType];
             var root = originalTypeModel.GetHierarchyRoot();
 
-            var rootType = BuildType(root, typeof (object), t => _model.Add(t, false), uniqueTypeSuffix, groupedByType);
-
-            return FindInSubtypes(rootType, key.Type);
+            var groupedByType = members.GroupBy(m => m.DeclaringType).ToDictionary(g=>g.Key);
+            return BuildType(root, typeof(object), t => _model.Add(t, false), uniqueSuffix, groupedByType);
         }
 
         private static Type FindInSubtypes(MetaType mt, Type type)
@@ -169,24 +153,24 @@ namespace ProtoBuf.Linq.LinqImpl
 
         private struct Key : IEquatable<Key>
         {
-            public readonly Type Type;
-            public readonly MemberInfo[] TypeMembers;
+            public readonly string Value;
 
-            public Key(Type type, MemberInfo[] typeMembers)
+            public Key(MemberInfo[] typeMembers)
             {
-                Type = type;
-                TypeMembers = typeMembers.OrderBy(member => member.Name).ToArray();
+                var str = new StringBuilder(1024)
+                    .Append(string.Join(",", typeMembers.Select(m => m.Name)))
+                    .Append(string.Join(",", typeMembers.Select(m => m.DeclaringType.FullName)))
+                    .ToString();
+
+                using (var sha1 = SHA1.Create())
+                {
+                    Value = BitConverter.ToString(sha1.ComputeHash(Encoding.UTF8.GetBytes(str))).Replace("-", "");
+                }
             }
 
             public bool Equals(Key other)
             {
-                if (Type != other.Type)
-                    return false;
-
-                if (TypeMembers.Length != other.TypeMembers.Length)
-                    return false;
-
-                return TypeMembers.SequenceEqual(other.TypeMembers);
+                return other.Value == Value;
             }
 
             public override bool Equals(object obj)
@@ -199,11 +183,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
             public override int GetHashCode()
             {
-                unchecked
-                {
-                    return ((TypeMembers != null ? TypeMembers.Length : 0) * 397) ^
-                        (Type != null ? Type.GetHashCode() : 0);
-                }
+                return Value.GetHashCode();
             }
         }
     }

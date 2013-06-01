@@ -134,7 +134,12 @@ namespace protobuf_linq.Tests
         {
             var q = _model.AsQueryable<Employee>(_stream, Prefix);
 
+            // manager test
             Assert.AreEqual(ManagersCount, q.OfType<Manager>().Count());
+
+            // hierarchy test
+            _stream.Seek(0, SeekOrigin.Begin);
+            Assert.AreEqual(ManagersCount + EmployeesCount, q.OfType<Employee>().Count());
         }
     }
 }
