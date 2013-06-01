@@ -11,27 +11,25 @@ namespace ProtoBuf.Linq
     /// <remarks>
     /// For more information about 'ab'using LINQ, visit: http://bartdesmet.net/blogs/bart/archive/2010/01/01/the-essence-of-linq-minlinq.aspx
     /// 
-    /// The interface provides a minimal set, allowing some optimizaitons to occur. The two root methods are these provided with <see cref="IWhere{TSource}"/> interface
-    /// and <see cref="ISelect{TSource}"/> interface. All the others can be translated into these two (see <see cref="ProtobufLINQExtensions"/> for more information). 
+    /// The interface provides a minimal set, allowing some optimizaitons to occur. The two root methods are <see cref="IProtobufSimpleQueryable{TSource}.Where"/>
+    /// and <see cref="IProtobufSimpleQueryable{TSource}.Select{TResult}"/>
+    /// All the others can be translated into these two (see <see cref="ProtobufLINQExtensions"/> for more information). 
     /// Future optimizations might unwind the rest of methods.
     /// </remarks>
     /// <typeparam name="TSource">The root type of the deserialized items. As in standard protobuf.</typeparam>
-    public interface IProtobufQueryable<TSource> : IOfType, ISelect<TSource>, IWhere<TSource>
+    public interface IProtobufQueryable<TSource> : IOfType<TSource>, IProtobufSimpleQueryable<TSource>
     {
     }
 
-    public interface IOfType
+    public interface IProtobufSimpleQueryable<TSource>
     {
-        IEnumerable<TResult> OfType<TResult>();
-    }
-
-    public interface ISelect<TSource>
-    {
+        IProtobufSimpleQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate);
         IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector);
     }
 
-    public interface IWhere<TSource>
+    public interface IOfType<in TSource>
     {
-        IProtobufQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate);
+        IProtobufSimpleQueryable<TResult> OfType<TResult>()
+            where TResult : TSource;
     }
 }

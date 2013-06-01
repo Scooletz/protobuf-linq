@@ -8,7 +8,8 @@ using ProtoBuf.Meta;
 
 namespace ProtoBuf.Linq.LinqImpl
 {
-    public class ProtobufQueryable<TSource> : IProtobufQueryable<TSource>
+    public class ProtobufQueryable<TDeserialized, TSource> : IProtobufSimpleQueryable<TSource>
+        where TSource: TDeserialized
     {
         private static readonly Expression<Func<TSource, int, bool>> TrueWhereClauseNullObject =
             Expression.Lambda<Func<TSource, int, bool>>(Expression.Constant(true),
@@ -33,11 +34,6 @@ namespace ProtoBuf.Linq.LinqImpl
             _model = model;
         }
 
-        public IEnumerable<TResult> OfType<TResult>()
-        {
-            throw new NotImplementedException();
-        }
-
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
             var visitor = new MemberInfoGatheringVisitor(typeof(TSource));
@@ -46,6 +42,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
             var members = visitor.Members.Distinct().OrderBy(mi => mi.Name).ToArray();
 
+            var typeDeserialized = GetTypeReplacingTSource(typeof(TDeserialized), members);
             var typeWithReducedMembers = GetTypeReplacingTSource(typeof(TSource), members);
 
             var newDeserializedItemParam = Expression.Parameter(typeWithReducedMembers);
@@ -60,7 +57,7 @@ namespace ProtoBuf.Linq.LinqImpl
             var newSelectorBody = ParameterReplacingVisitor.ReplaceParameter(selector.Body, selector.Parameters[0], newDeserializedItemParam);
             var newSelector = Expression.Lambda(newSelectorType, newSelectorBody, newDeserializedItemParam, selector.Parameters[1]).Compile();
 
-            var enumerableType = typeof(ProtoLinqEnumerable<,>).MakeGenericType(typeWithReducedMembers, typeof(TResult));
+            var enumerableType = typeof(ProtoLinqEnumerable<,,>).MakeGenericType(typeDeserialized, typeWithReducedMembers, typeof(TResult));
             return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
         }
 
@@ -70,7 +67,7 @@ namespace ProtoBuf.Linq.LinqImpl
                 .GetTypeForProjection(type, members);
         }
 
-        public IProtobufQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate)
+        public IProtobufSimpleQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate)
         {
             var body = predicate.Body;
 
@@ -79,7 +76,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
             var combinedWhere = Expression.Lambda<Func<TSource, int, bool>>(Expression.And(_whereClause.Body, body), _whereClause.Parameters);
 
-            return new ProtobufQueryable<TSource>(_model, _source, _prefix, combinedWhere);
+            return new ProtobufQueryable<TDeserialized, TSource>(_model, _source, _prefix, combinedWhere);
         }
 
         private ParameterExpression WhereIndexParam

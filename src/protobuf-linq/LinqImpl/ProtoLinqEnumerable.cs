@@ -6,7 +6,7 @@ using ProtoBuf.Meta;
 
 namespace ProtoBuf.Linq.LinqImpl
 {
-    public class ProtoLinqEnumerable<TSource, TResult> : IEnumerable<TResult>
+    public class ProtoLinqEnumerable<TDeserialized, TSource, TResult> : IEnumerable<TResult>
     {
         private readonly RuntimeTypeModel _model;
         private readonly PrefixStyle _prefix;
@@ -29,10 +29,13 @@ namespace ProtoBuf.Linq.LinqImpl
             object value;
             while (TryDeserializeWithLengthPrefix(_source, _prefix, null, out value))
             {
-                var v = (TSource)value;
-                if (_where(v, i))
+                if (value is TSource)
                 {
-                    yield return _selector(v, i);
+                    var v = (TSource)value;
+                    if (_where(v, i))
+                    {
+                        yield return _selector(v, i);
+                    }
                 }
 
                 i += 1;
@@ -41,7 +44,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
         private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, out object value)
         {
-            value = _model.DeserializeWithLengthPrefix(source, null, typeof(TSource), style, 0, resolver);
+            value = _model.DeserializeWithLengthPrefix(source, null, typeof(TDeserialized), style, 0, resolver);
             return value != null;
         } 
 
