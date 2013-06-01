@@ -1,7 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
 using ProtoBuf;
-using ProtoBuf.LinqImpl;
+using ProtoBuf.Linq.LinqImpl;
 using ProtoBuf.Meta;
 
 namespace protobuf_linq.Tests.Impl

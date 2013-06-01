@@ -1,7 +1,8 @@
 ﻿using System.IO;
 using NUnit.Framework;
 using ProtoBuf;
-using ProtoBuf.LinqImpl;
+using ProtoBuf.Linq;
+using ProtoBuf.Linq.LinqImpl;
 using ProtoBuf.Meta;
 
 namespace protobuf_linq.Tests
@@ -68,7 +69,7 @@ namespace protobuf_linq.Tests
         }
 
         [Test]
-        public void query_with_where_over_employees()
+        public void query_with_where_and_select()
         {
             const PrefixStyle prefix = PrefixStyle.Base128;
 

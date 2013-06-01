@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Xml.Serialization;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public static class ReflectionExtensions
     {

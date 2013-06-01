@@ -2,7 +2,7 @@
 using System.Reflection;
 using ProtoBuf.Meta;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public static class ProtobufExtensions
     {

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using ProtoBuf.Meta;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public class ProtoLinqEnumerable<TSource, TResult> : IEnumerable<TResult>
     {

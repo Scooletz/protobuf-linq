@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq.Expressions;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using ProtoBuf.Meta;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public class ProtobufQueryable<TSource> : IProtobufQueryable<TSource>
     {

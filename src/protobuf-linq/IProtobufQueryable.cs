@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 
-namespace ProtoBuf
+namespace ProtoBuf.Linq
 {
     /// <summary>
     /// The basic interface for queryable protobuf serialized items, allowing LINQ, not using an <see cref="IQueryable{T}"/> interface.

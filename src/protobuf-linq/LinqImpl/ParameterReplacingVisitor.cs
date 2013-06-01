@@ -1,6 +1,6 @@
 ﻿using System.Linq.Expressions;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public class ParameterReplacingVisitor : ExpressionVisitor
     {

@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
-using ProtoBuf.LinqImpl;
+using ProtoBuf.Linq.LinqImpl;
 using ProtoBuf.Meta;
 
-namespace ProtoBuf
+namespace ProtoBuf.Linq
 {
     /// <summary>
     /// An extension methods translating almost all LINQ methods into calls based on the <see cref="IProtobufQueryable{TSource}"/> interface provided methods.

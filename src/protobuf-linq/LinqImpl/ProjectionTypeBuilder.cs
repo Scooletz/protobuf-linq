@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using ProtoBuf.Meta;
 
-namespace ProtoBuf.LinqImpl
+namespace ProtoBuf.Linq.LinqImpl
 {
     public sealed class ProjectionTypeBuilder
     {

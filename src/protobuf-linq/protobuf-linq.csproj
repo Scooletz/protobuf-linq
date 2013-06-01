@@ -8,7 +8,7 @@
     <ProjectGuid>{581069EC-14BA-43B4-B125-77E11C038130}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ProtoBuf</RootNamespace>
+    <RootNamespace>ProtoBuf.Linq</RootNamespace>
     <AssemblyName>protobuf-linq</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
