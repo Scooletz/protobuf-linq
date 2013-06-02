@@ -1,8 +1,8 @@
 protobuf-linq
 =============
 
-A LINQ extension to the great [protobuf-net](http://code.google.com/p/protobuf-net/) library provided by Marc Gravell.
-The library provides an interesting opportunity to speed up queryies over big stream of data, as it offers an optimal deserialization of items. Typical scenarios to use it would be:
+*Protobuf-linq* is a LINQ extension over the great [protobuf-net](http://code.google.com/p/protobuf-net/) library provided by Marc Gravell.
+The _protobuf-linq_ library provides an interesting opportunity to speed up queryies over big stream of data, as it offers an optimal deserialization of items. Typical scenarios to use it would be:
 - counting elements in the collection
 - counting elements of the given properties
 - selecting a subset of properties as a projection from the type
