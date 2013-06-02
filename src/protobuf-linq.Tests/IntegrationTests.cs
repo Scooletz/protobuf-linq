@@ -116,7 +116,7 @@ namespace protobuf_linq.Tests
         }
 
         [Test]
-        public void query_with_where_and_select()
+        public void QueryWithWhereAndSelect()
         {
             var q = _model.AsQueryable<Employee>(_stream, Prefix);
 
@@ -131,7 +131,7 @@ namespace protobuf_linq.Tests
         }
 
         [Test]
-        public void query_with_oftype_and_select()
+        public void QueryWithOftypeAndSelect()
         {
             var q = _model.AsQueryable<Employee>(_stream, Prefix);
 
@@ -145,7 +145,7 @@ namespace protobuf_linq.Tests
 
         [Test]
         [ExpectedException(typeof(InvalidOperationException))] // TODO: currently, it throws
-        public void query_with_select_of_deserialized_item_returns_original_type()
+        public void QueryWithSelectOfDeserializedItemReturnsOriginalType()
         {
             var q = _model.AsQueryable<Employee>(_stream, Prefix);
             
