@@ -9,7 +9,7 @@ using ProtoBuf.Meta;
 namespace ProtoBuf.Linq.LinqImpl
 {
     public class ProtobufQueryable<TDeserialized, TSource> : IProtobufSimpleQueryable<TSource>
-        where TSource: TDeserialized
+        where TSource : TDeserialized
     {
         private static readonly Expression<Func<TSource, int, bool>> TrueWhereClauseNullObject =
             Expression.Lambda<Func<TSource, int, bool>>(Expression.Constant(true),
@@ -36,6 +36,11 @@ namespace ProtoBuf.Linq.LinqImpl
 
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
+            var parameterReferenceVisitor = new NakedParameterReferenceVisitor();
+            parameterReferenceVisitor.Visit(selector.Body);
+            if (parameterReferenceVisitor.ParametersFound.Any(param => ReferenceEquals(param, selector.Parameters[0])))
+                throw new InvalidOperationException("A reference to a deserialized type found in the select clause. Currently, only projections selecting type fields are allowed.");
+
             var visitor = new MemberInfoGatheringVisitor(typeof(TSource));
             visitor.Visit(_whereClause);
             visitor.Visit(selector);

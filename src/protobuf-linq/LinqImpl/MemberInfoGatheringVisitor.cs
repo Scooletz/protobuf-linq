@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace ProtoBuf.Linq.LinqImpl
 {
-    public class MemberInfoGatheringVisitor : ExpressionVisitor
+    public sealed class MemberInfoGatheringVisitor : ExpressionVisitor
     {
         public readonly List<MemberInfo> Members = new List<MemberInfo>();
         private readonly Type _searchedType;

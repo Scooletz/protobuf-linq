@@ -2,7 +2,7 @@
 
 namespace ProtoBuf.Linq.LinqImpl
 {
-    public class ParameterReplacingVisitor : ExpressionVisitor
+    public sealed class ParameterReplacingVisitor : ExpressionVisitor
     {
         private readonly ParameterExpression _oldParam;
         private readonly ParameterExpression _newParam;

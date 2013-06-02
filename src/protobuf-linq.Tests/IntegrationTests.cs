@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
@@ -8,7 +9,7 @@ using ProtoBuf.Meta;
 
 namespace protobuf_linq.Tests
 {
-    public class IntegrationScenarios
+    public class IntegrationTests
     {
         private const PrefixStyle Prefix = PrefixStyle.Base128;
         private const int RepetetionCount = 10;
@@ -17,7 +18,7 @@ namespace protobuf_linq.Tests
 
         private readonly RuntimeTypeModel _model;
 
-        public IntegrationScenarios()
+        public IntegrationTests()
         {
             _model = TypeModel.Create();
             _model.Add(typeof(Employee), true);
@@ -140,6 +141,16 @@ namespace protobuf_linq.Tests
             // hierarchy test
             _stream.Seek(0, SeekOrigin.Begin);
             Assert.AreEqual(ManagersCount + EmployeesCount, q.OfType<Employee>().Count());
+        }
+
+        [Test]
+        [ExpectedException(typeof(InvalidOperationException))] // TODO: currently, it throws
+        public void query_with_select_of_deserialized_item_returns_original_type()
+        {
+            var q = _model.AsQueryable<Employee>(_stream, Prefix);
+            
+            var firstEmployee = q.Select(e => e).FirstOrDefault();
+            Assert.IsInstanceOf<Employee>(firstEmployee);
         }
     }
 }
