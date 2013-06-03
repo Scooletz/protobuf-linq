@@ -15,3 +15,5 @@ The _protobuf-linq_ does not implement IQueryable, rather providing custom metho
 
 In a few performance tests included in the test project, it is shown that querying with protobuf-linq over a big set of data can greatly improve an execution time reducing it to the ~50% of the original. The size of allocations is also reduced.
 The reduction of the cost depends on the type of operation and may not be so significant in some scenarios.
+
+Take a look at [wiki](https://github.com/Scooletz/protobuf-linq/wiki)
