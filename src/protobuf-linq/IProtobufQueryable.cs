@@ -25,6 +25,7 @@ namespace ProtoBuf.Linq
     {
         IProtobufSimpleQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate);
         IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector);
+        TAccumulate Aggregate<TAccumulate>(TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func);
     }
 
     public interface IOfType<in TSource>

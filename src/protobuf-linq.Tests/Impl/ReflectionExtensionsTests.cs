@@ -1,3 +1,5 @@
+using System;
+using System.Diagnostics;
 using System.Reflection;
 using NUnit.Framework;
 using ProtoBuf.Linq.LinqImpl;
@@ -21,7 +23,11 @@ namespace protobuf_linq.Tests.Impl
             public string NonAuto
             {
                 get { return _nonAuto; }
-                set { var sthElse = _nonAuto = value; }
+                set
+                {
+                    value = Math.Pow(1,1) > 0 ? value : null;
+                    _nonAuto = value;
+                }
             }
         }
 
@@ -45,6 +51,7 @@ namespace protobuf_linq.Tests.Impl
             Assert.IsFalse(GetProp("NonAuto").IsAutoProperty());
         }
 
+        [DebuggerStepThrough]
         private static PropertyInfo GetProp(string autopropwithbackingfield)
         {
             return typeof(Autoprops).GetProperty(autopropwithbackingfield);

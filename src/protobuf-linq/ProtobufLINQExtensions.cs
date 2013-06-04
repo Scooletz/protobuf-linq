@@ -58,19 +58,11 @@ namespace ProtoBuf.Linq
             return source.Select(selector).Average();
         }
 
-        public static TAccumulate Aggregate<TSource, TAccumulate>(this IProtobufSimpleQueryable<TSource> source, TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func)
-        {
-            throw new NotImplementedException();
-        }
-
-        public static TResult Aggregate<TSource, TAccumulate, TResult>(this IProtobufSimpleQueryable<TSource> source,
-            TAccumulate seed,
-            Expression
-                <Func<TAccumulate, TSource, TAccumulate>>
-                func,
+        public static TResult Aggregate<TSource, TAccumulate, TResult>(this IProtobufSimpleQueryable<TSource> source, TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>>func,
             Expression<Func<TAccumulate, TResult>> selector)
         {
-            throw new NotImplementedException();
+            var accumulate = source.Aggregate(seed, func);
+            return selector.Compile()(accumulate);
         }
 
         public static IProtobufSimpleQueryable<TSource> Skip<TSource>(this IProtobufSimpleQueryable<TSource> source, int i)

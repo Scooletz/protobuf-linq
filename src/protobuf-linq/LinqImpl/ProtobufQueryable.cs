@@ -36,9 +36,8 @@ namespace ProtoBuf.Linq.LinqImpl
 
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
-            var parameterReferenceVisitor = new NakedParameterReferenceVisitor();
-            parameterReferenceVisitor.Visit(selector.Body);
-            if (parameterReferenceVisitor.ParametersFound.Any(param => ReferenceEquals(param, selector.Parameters[0])))
+            var foundParameters = NakedParameterReferenceVisitor.GetParameters(selector.Body);
+            if (foundParameters.Any(param => ReferenceEquals(param, selector.Parameters[0])))
                 throw new InvalidOperationException("A reference to a deserialized type found in the select clause. Currently, only projections selecting type fields are allowed.");
 
             var visitor = new MemberInfoGatheringVisitor(typeof(TSource));
@@ -53,9 +52,7 @@ namespace ProtoBuf.Linq.LinqImpl
             var newDeserializedItemParam = Expression.Parameter(typeWithReducedMembers);
 
             // build new where clause, with a parameter of reduced number of ValueMembers
-            var newPredicateType = typeof(Func<,,>).MakeGenericType(typeWithReducedMembers, typeof(int), typeof(bool));
-            var newPredicateBody = ParameterReplacingVisitor.ReplaceParameter(_whereClause.Body, WhereItemParam, newDeserializedItemParam);
-            var newWhere = Expression.Lambda(newPredicateType, newPredicateBody, newDeserializedItemParam, WhereIndexParam).Compile();
+            var newWhere = BuildNewWhere(typeWithReducedMembers, newDeserializedItemParam);
 
             // build new selector, with a parameter of reduced number of ValueMembers
             var newSelectorType = typeof(Func<,,>).MakeGenericType(typeWithReducedMembers, typeof(int), typeof(TResult));
@@ -64,6 +61,44 @@ namespace ProtoBuf.Linq.LinqImpl
 
             var enumerableType = typeof(ProtoLinqEnumerable<,,>).MakeGenericType(typeDeserialized, typeWithReducedMembers, typeof(TResult));
             return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
+        }
+
+        private Delegate BuildNewWhere(Type typeWithReducedMembers, ParameterExpression newDeserializedItemParam)
+        {
+            var newPredicateType = typeof(Func<,,>).MakeGenericType(typeWithReducedMembers, typeof(int), typeof(bool));
+            var newPredicateBody = ParameterReplacingVisitor.ReplaceParameter(_whereClause.Body, WhereItemParam,
+                newDeserializedItemParam);
+            return Expression.Lambda(newPredicateType, newPredicateBody, newDeserializedItemParam, WhereIndexParam).Compile();
+        }
+
+        public TAccumulate Aggregate<TAccumulate>(TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func)
+        {
+            var foundParameters = NakedParameterReferenceVisitor.GetParameters(func.Body);
+            if (foundParameters.Any(param => ReferenceEquals(param, func.Parameters[1])))
+                throw new InvalidOperationException("A reference to a deserialized type found in the select clause. Currently, only aggregations selecting type fields are allowed.");
+
+            var visitor = new MemberInfoGatheringVisitor(typeof(TSource));
+            visitor.Visit(_whereClause);
+            visitor.Visit(func);
+
+            var members = visitor.Members.Distinct().OrderBy(mi => mi.Name).ToArray();
+
+            var typeDeserialized = GetTypeReplacingTSource(typeof(TDeserialized), members);
+            var typeWithReducedMembers = GetTypeReplacingTSource(typeof(TSource), members);
+
+            var newDeserializedItemParam = Expression.Parameter(typeWithReducedMembers);
+
+            // build new where clause, with a parameter of reduced number of ValueMembers
+            var newWhere = BuildNewWhere(typeWithReducedMembers, newDeserializedItemParam);
+
+            // build new selector, with a parameter of reduced number of ValueMembers
+            var newFuncType = typeof(Func<,,>).MakeGenericType(typeof(TAccumulate), typeWithReducedMembers, typeof(TAccumulate));
+            var newSelectorBody = ParameterReplacingVisitor.ReplaceParameter(func.Body, func.Parameters[1], newDeserializedItemParam);
+            var newSelector = Expression.Lambda(newFuncType, newSelectorBody, func.Parameters[0], newDeserializedItemParam).Compile();
+
+            var aggregatorType = typeof(ProtoLinqAggregator<,,>).MakeGenericType(typeDeserialized, typeWithReducedMembers, typeof(TAccumulate));
+            var aggregator = (IAggregator<TAccumulate>)aggregatorType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, seed, newWhere, newSelector });
+            return aggregator.Aggregate();
         }
 
         private Type GetTypeReplacingTSource(Type type, MemberInfo[] members)

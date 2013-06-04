@@ -148,9 +148,17 @@ namespace protobuf_linq.Tests
         public void QueryWithSelectOfDeserializedItemReturnsOriginalType()
         {
             var q = _model.AsQueryable<Employee>(_stream, Prefix);
-            
+
             var firstEmployee = q.Select(e => e).FirstOrDefault();
             Assert.IsInstanceOf<Employee>(firstEmployee);
+        }
+
+        [Test]
+        public void QueryWithWhereAndAggregate()
+        {
+            var q = _model.AsQueryable<Employee>(_stream, Prefix);
+            var idSum = q.Aggregate(0, (prev, emp) => prev + emp.Id);
+            Console.WriteLine(idSum);
         }
     }
 }

@@ -45,6 +45,7 @@
     <Compile Include="IProtobufQueryable.cs" />
     <Compile Include="LinqImpl\NakedParameterReferenceVisitor.cs" />
     <Compile Include="LinqImpl\ProtobufQueryableBuilder.cs" />
+    <Compile Include="LinqImpl\ProtoLinqAggregator.cs" />
     <Compile Include="LinqImpl\ProtoLinqEnumerable.cs" />
     <Compile Include="LinqImpl\MemberInfoGatheringVisitor.cs" />
     <Compile Include="LinqImpl\ParameterReplacingVisitor.cs" />

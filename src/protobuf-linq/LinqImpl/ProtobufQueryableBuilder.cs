@@ -28,7 +28,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
         public IProtobufSimpleQueryable<TResult> OfType<TResult>() where TResult : TSource
         {
-            return new ProtobufQueryable<TSource,TResult>(_model, _source, _prefix);
+            return new ProtobufQueryable<TSource, TResult>(_model, _source, _prefix);
         }
 
         public IProtobufSimpleQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate)
@@ -39,6 +39,11 @@ namespace ProtoBuf.Linq.LinqImpl
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
             return new ProtobufQueryable<TSource, TSource>(_model, _source, _prefix).Select(selector);
+        }
+
+        public TAccumulate Aggregate<TAccumulate>(TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func)
+        {
+            return new ProtobufQueryable<TSource, TSource>(_model, _source, _prefix).Aggregate(seed, func);
         }
     }
 }

@@ -7,6 +7,10 @@ namespace ProtoBuf.Linq.LinqImpl
     {
         public List<ParameterExpression> ParametersFound = new List<ParameterExpression>();
 
+        private NakedParameterReferenceVisitor()
+        {
+        }
+
         protected override Expression VisitMember(MemberExpression node)
         {
             // if parameter referenced by its member, skip the nested inspection
@@ -20,6 +24,13 @@ namespace ProtoBuf.Linq.LinqImpl
         {
             ParametersFound.Add(node);
             return base.VisitParameter(node);
+        }
+
+        public static IEnumerable<ParameterExpression> GetParameters(Expression expression)
+        {
+            var @this = new NakedParameterReferenceVisitor();
+            @this.Visit(expression);
+            return @this.ParametersFound;
         }
     }
 }
