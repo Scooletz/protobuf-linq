@@ -9,10 +9,11 @@ namespace ProtoBuf.Linq.LinqImpl
 {
     public static class ReflectionExtensions
     {
-        private readonly static byte?[] GetterBytes = GetGetterBytes();
+        private readonly static byte?[] GetterBytes1 = GetGetterBytes1();
+        private readonly static byte?[] GetterBytes2 = GetGetterBytes2();
         private static readonly byte?[] SetterBytes = GetSetterBytes();
 
-        private static byte?[] GetGetterBytes()
+        private static byte?[] GetGetterBytes1()
         {
             return new OpCode?[]
             {
@@ -28,6 +29,23 @@ namespace ProtoBuf.Linq.LinqImpl
                 // branch
                 null,
                 OpCodes.Ldloc_0,
+                OpCodes.Ret
+            }
+                .Select(o => o != null ? (byte) o.Value.Value : default(byte?))
+                .ToArray();
+        }
+        
+        private static byte?[] GetGetterBytes2()
+        {
+            return new OpCode?[]
+            {
+                OpCodes.Ldarg_0,
+                OpCodes.Ldfld,
+                // field token
+                null,
+                null,
+                null,
+                null,
                 OpCodes.Ret
             }
                 .Select(o => o != null ? (byte) o.Value.Value : default(byte?))
@@ -74,7 +92,8 @@ namespace ProtoBuf.Linq.LinqImpl
             var getBytes = ClearNop(getBody.GetILAsByteArray());
 
             List<byte[]> readBytes;
-            if (MatchOpcodes(getBytes, GetterBytes, out readBytes) == false)
+            if (MatchOpcodes(getBytes, GetterBytes1, out readBytes) == false)
+                if (MatchOpcodes(getBytes,GetterBytes2, out readBytes) == false)
                 return false;
 
             var first = readBytes.First();
