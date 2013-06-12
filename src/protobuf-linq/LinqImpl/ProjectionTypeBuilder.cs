@@ -114,6 +114,13 @@ namespace ProtoBuf.Linq.LinqImpl
             var metaType = metaTypeBuilder(type);
             metaType.UseConstructor = false;
 
+            //// skip construction when no members at all
+            var anyMember = members.Count > 0;
+            if (anyMember == false)
+            {
+                metaType.SetFactory(GetGetSingletonInstance(type));
+            }
+
             // copy ValueMembers contained in the 
             var originalMetaTypeFields = originalMetaType.GetFields().ToDictionary(vm => vm.Name);
             if (membersForThisType != null)
@@ -153,6 +160,13 @@ namespace ProtoBuf.Linq.LinqImpl
         {
             var memberType = typeGiver is FieldInfo ? ((FieldInfo)typeGiver).FieldType : ((PropertyInfo)typeGiver).PropertyType;
             typeBuilder.DefineField(typeGiver.Name, memberType, FieldAttributes.Public);
+        }
+
+        private static MethodInfo GetGetSingletonInstance(Type typeToGet)
+        {
+            const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static;
+            var singletonType = typeof (Singleton<>).MakeGenericType(typeToGet);
+            return singletonType.GetMethod("GetInstance", flags);
         }
 
         private struct Key : IEquatable<Key>
