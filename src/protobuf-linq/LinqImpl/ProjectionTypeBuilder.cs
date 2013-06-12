@@ -137,7 +137,11 @@ namespace ProtoBuf.Linq.LinqImpl
             foreach (var originalSubtype in originalMetaType.GetSubtypes())
             {
                 var s = originalSubtype;
-                Func<Type, MetaType> builder = t => metaType.AddSubType(s.FieldNumber, t, s.GetDataFormat());
+                Func<Type, MetaType> builder = t =>
+                    {
+                        metaType.AddSubType(s.FieldNumber, t, s.GetDataFormat());
+                        return metaType.GetSubtypes().Single(st => st.DerivedType.Type == t).DerivedType;
+                    };
 
                 BuildType(originalSubtype.DerivedType, type, builder, uniqueTypeSuffix, members);
             }
