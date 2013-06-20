@@ -11,6 +11,7 @@ using ProtoBuf.Meta;
 namespace protobuf_linq.Tests
 {
     [TestFixture(Category = "Performance")]
+    [Explicit]
     public class PerformanceTests
     {
         private const PrefixStyle Prefix = PrefixStyle.Base128;
