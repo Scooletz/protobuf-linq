@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>protobuf-linq</id>
+    <authors>Scooletz</authors>
+    <owners>Scooletz</owners>
+    <licenseUrl>https://github.com/Scooletz/protobuf-linq/blob/master/license.txt</licenseUrl>
+    <projectUrl>https://github.com/Scooletz/protobuf-linq</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>The LINQ extension over protobuf-net</description>
+    <releaseNotes>The newest version of protobuf-linq.</releaseNotes>
+    <copyright>Copyright 2013</copyright>
+    <tags>binary serialization protocol buffers protobuf deserialization LINQ</tags>
+  </metadata>
+</package>
