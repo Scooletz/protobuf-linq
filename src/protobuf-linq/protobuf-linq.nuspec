@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>protobuf-linq</id>
-	<version>$version$<version>
+	<version>$version$</version>
     <authors>Scooletz</authors>
     <owners>Scooletz</owners>
     <licenseUrl>https://github.com/Scooletz/protobuf-linq/blob/master/license.txt</licenseUrl>
