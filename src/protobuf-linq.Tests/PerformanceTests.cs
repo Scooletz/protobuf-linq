@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -6,6 +7,7 @@ using System.Linq;
 using NUnit.Framework;
 using ProtoBuf;
 using ProtoBuf.Linq;
+using ProtoBuf.Linq.LinqImpl;
 using ProtoBuf.Meta;
 
 namespace protobuf_linq.Tests
@@ -104,30 +106,42 @@ namespace protobuf_linq.Tests
         }
 
         [Test]
-        public void Count()
+        [TestCaseSource("GetOptions")]
+        public void Count(QueryableOptions options)
         {
             Measure(
-                () => _model.DeserializeItems<Event>(_stream, Prefix, 0).Count(),
-                () => _model.AsQueryable<Event>(_stream, Prefix).Count()
+                () => _model.DeserializeItems<Event>(_stream, options.PrefixStyle, 0).Count(),
+                () => _model.AsQueryable<Event>(_stream, options).Count()
                 );
         }
 
         [Test]
-        public void OfTypeCount()
+        [TestCaseSource("GetOptions")]
+        public void OfTypeCount(QueryableOptions options)
         {
             Measure(
-                () => _model.DeserializeItems<Event>(_stream, Prefix, 0).OfType<OrderPlacedEvent>().Count(),
-                () => _model.AsQueryable<Event>(_stream, Prefix).OfType<OrderPlacedEvent>().Count()
+                () => _model.DeserializeItems<Event>(_stream, options.PrefixStyle, 0).OfType<OrderPlacedEvent>().Count(),
+                () => _model.AsQueryable<Event>(_stream, options).OfType<OrderPlacedEvent>().Count()
                 );
         }
 
         [Test]
-        public void SelectOneProperty()
+        [TestCaseSource("GetOptions")]
+        public void SelectOneProperty(QueryableOptions options)
         {
             Measure(
-                () => _model.DeserializeItems<Event>(_stream, Prefix, 0).Select(e => e.OccuranceDate).All(td => true),
-                () => _model.AsQueryable<Event>(_stream, Prefix).Select(e => e.OccuranceDate).All(td => true)
+                () => _model.DeserializeItems<Event>(_stream, options.PrefixStyle, 0).Select(e => e.OccuranceDate).All(td => true),
+                () => _model.AsQueryable<Event>(_stream, options).Select(e => e.OccuranceDate).All(td => true)
                 );
+        }
+
+        public static IEnumerable<TestCaseData> GetOptions()
+        {
+            yield return new TestCaseData(new QueryableOptions { PrefixStyle = PrefixStyle.Base128, UseAggresiveNoAllocObjectReuse = false })
+                .SetName("No reuse"); 
+            
+            yield return new TestCaseData(new QueryableOptions { PrefixStyle = PrefixStyle.Base128, UseAggresiveNoAllocObjectReuse = false })
+                .SetName("With instance reuse");
         }
 
         private void Measure(Action original, Action linq)

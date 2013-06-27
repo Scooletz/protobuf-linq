@@ -26,9 +26,9 @@ namespace ProtoBuf.Linq.LinqImpl
         public TAccumulate Aggregate()
         {
             var i = 0;
-            object value;
+            object value = null;
             var result = _seed;
-            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, out value))
+            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, ref value))
             {
                 if (value is TSource)
                 {
@@ -39,13 +39,22 @@ namespace ProtoBuf.Linq.LinqImpl
                     }
                 }
 
+                if (_options.UseAggresiveNoAllocObjectReuse)
+                {
+                    ((IProtoLinqObject) value).Clear();
+                }
+                else
+                {
+                    value = null;    
+                }
+                
                 i += 1;
             }
 
             return result;
         }
 
-        private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, out object value)
+        private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, ref object value)
         {
             value = _model.DeserializeWithLengthPrefix(source, null, typeof(TDeserialized), style, 0, resolver);
             return value != null;

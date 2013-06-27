@@ -26,8 +26,8 @@ namespace ProtoBuf.Linq.LinqImpl
         public IEnumerator<TResult> GetEnumerator()
         {
             var i = 0;
-            object value;
-            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, out value))
+            object value = null;
+            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, ref value))
             {
                 if (value is TSource)
                 {
@@ -38,13 +38,22 @@ namespace ProtoBuf.Linq.LinqImpl
                     }
                 }
 
+                if (_options.UseAggresiveNoAllocObjectReuse)
+                {
+                    ((IProtoLinqObject)value).Clear();
+                }
+                else
+                {
+                    value = null;
+                }
+
                 i += 1;
             }
         }
 
-        private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, out object value)
+        private bool TryDeserializeWithLengthPrefix(Stream source, PrefixStyle style, Serializer.TypeResolver resolver, ref object value)
         {
-            value = _model.DeserializeWithLengthPrefix(source, null, typeof(TDeserialized), style, 0, resolver);
+            value = _model.DeserializeWithLengthPrefix(source, value, typeof(TDeserialized), style, 0, resolver);
             return value != null;
         } 
 
