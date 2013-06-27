@@ -17,19 +17,19 @@ namespace ProtoBuf.Linq.LinqImpl
                                                         Expression.Parameter(typeof(int)));
 
         private readonly Expression<Func<TSource, int, bool>> _whereClause;
-        private readonly PrefixStyle _prefix;
+        private readonly QueryableOptions _options;
         private readonly Stream _source;
         private readonly RuntimeTypeModel _model;
 
-        public ProtobufQueryable(RuntimeTypeModel model, Stream source, PrefixStyle prefix)
-            : this(model, source, prefix, TrueWhereClauseNullObject)
+        public ProtobufQueryable(RuntimeTypeModel model, Stream source, QueryableOptions options)
+            : this(model, source, options, TrueWhereClauseNullObject)
         {
         }
 
-        private ProtobufQueryable(RuntimeTypeModel model, Stream source, PrefixStyle prefix, Expression<Func<TSource, int, bool>> whereClause)
+        private ProtobufQueryable(RuntimeTypeModel model, Stream source, QueryableOptions options, Expression<Func<TSource, int, bool>> whereClause)
         {
             _whereClause = whereClause;
-            _prefix = prefix;
+            _options = options;
             _source = source;
             _model = model;
         }
@@ -60,7 +60,7 @@ namespace ProtoBuf.Linq.LinqImpl
             var newSelector = Expression.Lambda(newSelectorType, newSelectorBody, newDeserializedItemParam, selector.Parameters[1]).Compile();
 
             var enumerableType = typeof(ProtoLinqEnumerable<,,>).MakeGenericType(typeDeserialized, typeWithReducedMembers, typeof(TResult));
-            return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, newWhere, newSelector });
+            return (IEnumerable<TResult>)enumerableType.GetConstructors()[0].Invoke(new object[] { _model, _options, _source, newWhere, newSelector });
         }
 
         private Delegate BuildNewWhere(Type typeWithReducedMembers, ParameterExpression newDeserializedItemParam)
@@ -97,7 +97,7 @@ namespace ProtoBuf.Linq.LinqImpl
             var newSelector = Expression.Lambda(newFuncType, newSelectorBody, func.Parameters[0], newDeserializedItemParam).Compile();
 
             var aggregatorType = typeof(ProtoLinqAggregator<,,>).MakeGenericType(typeDeserialized, typeWithReducedMembers, typeof(TAccumulate));
-            var aggregator = (IAggregator<TAccumulate>)aggregatorType.GetConstructors()[0].Invoke(new object[] { _model, _prefix, _source, seed, newWhere, newSelector });
+            var aggregator = (IAggregator<TAccumulate>)aggregatorType.GetConstructors()[0].Invoke(new object[] { _model, _options, _source, seed, newWhere, newSelector });
             return aggregator.Aggregate();
         }
 
@@ -116,7 +116,7 @@ namespace ProtoBuf.Linq.LinqImpl
 
             var combinedWhere = Expression.Lambda<Func<TSource, int, bool>>(Expression.And(_whereClause.Body, body), _whereClause.Parameters);
 
-            return new ProtobufQueryable<TDeserialized, TSource>(_model, _source, _prefix, combinedWhere);
+            return new ProtobufQueryable<TDeserialized, TSource>(_model, _source, _options, combinedWhere);
         }
 
         private ParameterExpression WhereIndexParam

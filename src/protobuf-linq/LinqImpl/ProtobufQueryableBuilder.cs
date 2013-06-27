@@ -17,33 +17,33 @@ namespace ProtoBuf.Linq.LinqImpl
     {
         private readonly RuntimeTypeModel _model;
         private readonly Stream _source;
-        private readonly PrefixStyle _prefix;
+        private readonly QueryableOptions _options;
 
-        public ProtobufQueryableBuilder(RuntimeTypeModel model, Stream source, PrefixStyle prefix)
+        public ProtobufQueryableBuilder(RuntimeTypeModel model, Stream source, QueryableOptions options)
         {
             _model = model;
             _source = source;
-            _prefix = prefix;
+            _options = options;
         }
 
         public IProtobufSimpleQueryable<TResult> OfType<TResult>() where TResult : TSource
         {
-            return new ProtobufQueryable<TSource, TResult>(_model, _source, _prefix);
+            return new ProtobufQueryable<TSource, TResult>(_model, _source, _options);
         }
 
         public IProtobufSimpleQueryable<TSource> Where(Expression<Func<TSource, int, bool>> predicate)
         {
-            return new ProtobufQueryable<TSource, TSource>(_model, _source, _prefix).Where(predicate);
+            return new ProtobufQueryable<TSource, TSource>(_model, _source, _options).Where(predicate);
         }
 
         public IEnumerable<TResult> Select<TResult>(Expression<Func<TSource, int, TResult>> selector)
         {
-            return new ProtobufQueryable<TSource, TSource>(_model, _source, _prefix).Select(selector);
+            return new ProtobufQueryable<TSource, TSource>(_model, _source, _options).Select(selector);
         }
 
         public TAccumulate Aggregate<TAccumulate>(TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func)
         {
-            return new ProtobufQueryable<TSource, TSource>(_model, _source, _prefix).Aggregate(seed, func);
+            return new ProtobufQueryable<TSource, TSource>(_model, _source, _options).Aggregate(seed, func);
         }
     }
 }

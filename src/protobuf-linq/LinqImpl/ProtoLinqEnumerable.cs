@@ -9,14 +9,14 @@ namespace ProtoBuf.Linq.LinqImpl
     public class ProtoLinqEnumerable<TDeserialized, TSource, TResult> : IEnumerable<TResult>
     {
         private readonly RuntimeTypeModel _model;
-        private readonly PrefixStyle _prefix;
+        private readonly QueryableOptions _options;
         private readonly Stream _source;
         private readonly Func<TSource, int, bool> _where;
         private readonly Func<TSource, int, TResult> _selector;
 
-        public ProtoLinqEnumerable(RuntimeTypeModel model, PrefixStyle prefix, Stream source, Func<TSource, int, bool> @where, Func<TSource, int, TResult> selector)
+        public ProtoLinqEnumerable(RuntimeTypeModel model, QueryableOptions options, Stream source, Func<TSource, int, bool> @where, Func<TSource, int, TResult> selector)
         {
-            _prefix = prefix;
+            _options = options;
             _source = source;
             _where = @where;
             _selector = selector;
@@ -27,7 +27,7 @@ namespace ProtoBuf.Linq.LinqImpl
         {
             var i = 0;
             object value;
-            while (TryDeserializeWithLengthPrefix(_source, _prefix, null, out value))
+            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, out value))
             {
                 if (value is TSource)
                 {

@@ -52,6 +52,7 @@
     <Compile Include="LinqImpl\ProjectionTypeBuilder.cs" />
     <Compile Include="LinqImpl\ProtobufExtensions.cs" />
     <Compile Include="LinqImpl\ProtobufQueryable.cs" />
+    <Compile Include="LinqImpl\QueryableOptions.cs" />
     <Compile Include="LinqImpl\ReflectionExtensions.cs" />
     <Compile Include="LinqImpl\Singleton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

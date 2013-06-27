@@ -18,9 +18,19 @@ namespace ProtoBuf.Linq
     {
         private readonly static byte Counter = 0;
 
+        [Obsolete("Use override with QueryableOptions as last parameter")]
         public static IProtobufQueryable<T> AsQueryable<T>(this RuntimeTypeModel model, Stream source, PrefixStyle prefix = PrefixStyle.Base128)
         {
-            return new ProtobufQueryableBuilder<T>(model, source, prefix);
+            var options = QueryableOptions.GetDefault();
+            options.PrefixStyle = prefix;
+
+            return model.AsQueryable<T>(source, options);
+        }
+
+        public static IProtobufQueryable<T> AsQueryable<T>(this RuntimeTypeModel model, Stream source, QueryableOptions options = null)
+        {
+            options = options ?? QueryableOptions.GetDefault();
+            return new ProtobufQueryableBuilder<T>(model, source, options);
         }
 
         public static TSource ElementAtOrDefault<TSource>(this IProtobufSimpleQueryable<TSource> source, int index)
@@ -58,7 +68,7 @@ namespace ProtoBuf.Linq
             return source.Select(selector).Average();
         }
 
-        public static TResult Aggregate<TSource, TAccumulate, TResult>(this IProtobufSimpleQueryable<TSource> source, TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>>func,
+        public static TResult Aggregate<TSource, TAccumulate, TResult>(this IProtobufSimpleQueryable<TSource> source, TAccumulate seed, Expression<Func<TAccumulate, TSource, TAccumulate>> func,
             Expression<Func<TAccumulate, TResult>> selector)
         {
             var accumulate = source.Aggregate(seed, func);

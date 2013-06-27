@@ -7,20 +7,20 @@ namespace ProtoBuf.Linq.LinqImpl
     public sealed class ProtoLinqAggregator<TDeserialized, TSource, TAccumulate> : IAggregator<TAccumulate>
     {
         private readonly RuntimeTypeModel _model;
-        private readonly PrefixStyle _prefix;
+        private readonly QueryableOptions _options;
         private readonly Stream _source;
         private readonly TAccumulate _seed;
         private readonly Func<TSource, int, bool> _where;
         private readonly Func<TAccumulate, TSource, TAccumulate> _func;
 
-        public ProtoLinqAggregator(RuntimeTypeModel model, PrefixStyle prefix, Stream source, TAccumulate seed, Func<TSource, int, bool> @where, Func<TAccumulate, TSource, TAccumulate> func)
+        public ProtoLinqAggregator(RuntimeTypeModel model, QueryableOptions options, Stream source, TAccumulate seed, Func<TSource, int, bool> @where, Func<TAccumulate, TSource, TAccumulate> func)
         {
-            _prefix = prefix;
             _source = source;
             _seed = seed;
             _where = @where;
             _func = func;
             _model = model;
+            _options = options;
         }
 
         public TAccumulate Aggregate()
@@ -28,7 +28,7 @@ namespace ProtoBuf.Linq.LinqImpl
             var i = 0;
             object value;
             var result = _seed;
-            while (TryDeserializeWithLengthPrefix(_source, _prefix, null, out value))
+            while (TryDeserializeWithLengthPrefix(_source, _options.PrefixStyle, null, out value))
             {
                 if (value is TSource)
                 {
