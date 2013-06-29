@@ -29,7 +29,7 @@ namespace protobuf_linq.Tests.Impl
             public string Name { get; set; }
             [ProtoMember(3)]
             public string Surname;
-            
+
             public static PlainObject WithId(int i)
             {
                 var po = new PlainObject { Id = i };
@@ -37,6 +37,25 @@ namespace protobuf_linq.Tests.Impl
                 po.Surname = po.Name;
                 return po;
             }
+        }
+
+        [ProtoContract(SkipConstructor = true)]
+        [ProtoInclude(10, typeof(DescendantForClear))]
+        public class RootForClear
+        {
+            [ProtoMember(1)]
+            public int BaseStruct { get; set; }
+            [ProtoMember(2)]
+            public string BaseReference { get; set; }
+        }
+
+        [ProtoContract(SkipConstructor = true)]
+        public class DescendantForClear : RootForClear
+        {
+            [ProtoMember(1)]
+            public int Struct { get; set; }
+            [ProtoMember(2)]
+            public string Reference { get; set; }
         }
 
         [Test]
@@ -82,28 +101,38 @@ namespace protobuf_linq.Tests.Impl
 
             using (var ms = new MemoryStream())
             {
-                _model.SerializeWithLengthPrefix(ms, PlainObject.WithId(1), prefix);
+                _model.SerializeWithLengthPrefix<RootForClear>(ms, new DescendantForClear
+                {
+                    Reference = "test",
+                    Struct = 1,
+                    BaseReference = "test",
+                    BaseStruct = 1,
+                }, prefix);
 
                 var builder = new ProjectionTypeBuilder(_model);
-                var allPropsAndFields = typeof(PlainObject).GetMembers().Where(FieldOrProperty).ToArray();
-                var type = builder.GetTypeForProjection(typeof(PlainObject), allPropsAndFields);
+                var allPropsAndFields = typeof(DescendantForClear).GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.FlattenHierarchy).Where(FieldOrProperty).ToArray();
+                var type = builder.GetTypeForProjection(typeof(DescendantForClear), allPropsAndFields);
 
                 ms.Seek(0, SeekOrigin.Begin);
                 var item = _model.DeserializeItems(ms, type, prefix, 0, null).Cast<object>().Single();
 
-                var fiId = (FieldInfo)type.GetMember("Id")[0];
-                Assert.AreNotEqual(0, (int)fiId.GetValue(item));
+                var fiStruct = (FieldInfo)type.GetMember("Struct")[0];
+                Assert.AreNotEqual(0, (int)fiStruct.GetValue(item));
 
-                var fiName = (FieldInfo)type.GetMember("Name")[0];
-                Assert.IsNotNullOrEmpty((string) fiName.GetValue(item));
+                var fiReference = (FieldInfo)type.GetMember("Reference")[0];
+                Assert.IsNotNullOrEmpty((string)fiReference.GetValue(item));
 
-                var fiSurname = (FieldInfo)type.GetMember("Surname")[0];
-                Assert.IsNotNullOrEmpty((string)fiSurname.GetValue(item));
+                var fiBaseStruct = (FieldInfo)type.GetMember("BaseStruct")[0];
+                Assert.AreNotEqual(0, (int)fiBaseStruct.GetValue(item));
+
+                var fiBaseReference = (FieldInfo)type.GetMember("BaseReference")[0];
+                Assert.IsNotNullOrEmpty((string)fiBaseReference.GetValue(item));
 
                 ((IProtoLinqObject)item).Clear();
-                Assert.AreEqual(0, (int)fiId.GetValue(item));
-                Assert.IsNull(fiName.GetValue(item));
-                Assert.IsNull(fiSurname.GetValue(item));
+                Assert.AreEqual(0, (int)fiStruct.GetValue(item));
+                Assert.IsNull(fiReference.GetValue(item));
+                Assert.AreEqual(0, (int)fiBaseStruct.GetValue(item));
+                Assert.IsNull(fiBaseReference.GetValue(item));
             }
         }
 

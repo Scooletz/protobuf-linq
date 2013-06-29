@@ -93,14 +93,17 @@ namespace ProtoBuf.Linq.LinqImpl
             return mt.Type.FullName.Contains(t.Name); // to refactor, as it's blach magic knowing that BuildType uses name.
         }
 
-        private MetaType BuildType(MetaType originalMetaType, Type baseType, Func<Type, MetaType> metaTypeBuilder, string uniqueTypeSuffix, Dictionary<Type, IGrouping<Type, MemberInfo>> members)
+        private MetaType BuildType(MetaType originalMetaType, Type baseType, Func<Type, MetaType> metaTypeBuilder, string uniqueTypeSuffix, 
+            Dictionary<Type, IGrouping<Type, MemberInfo>> members, List<FieldBuilder> baseTypesFields = null)
         {
+            var fields = baseTypesFields ?? new List<FieldBuilder>();
+
             var typeBeingTransformed = originalMetaType.Type;
 
             var typeName = _namespace + "." + typeBeingTransformed.Name + uniqueTypeSuffix;
             var typeBuilder = _module.DefineType(typeName, ProjectionTypeAttributes, baseType);
 
-            var fields = new List<FieldBuilder>();
+            
             // define fields which are members of this projection in the new type, with the same type and name as members in the original
             IGrouping<Type, MemberInfo> membersForThisType;
             if (members.TryGetValue(typeBeingTransformed, out membersForThisType))
@@ -155,7 +158,7 @@ namespace ProtoBuf.Linq.LinqImpl
                         return metaType.GetSubtypes().Single(st => st.DerivedType.Type == t).DerivedType;
                     };
 
-                BuildType(originalSubtype.DerivedType, type, builder, uniqueTypeSuffix, members);
+                BuildType(originalSubtype.DerivedType, type, builder, uniqueTypeSuffix, members, fields.ToList());
             }
 
             return metaType;
