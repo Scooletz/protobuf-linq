@@ -140,7 +140,7 @@ namespace protobuf_linq.Tests
             yield return new TestCaseData(new QueryableOptions { PrefixStyle = PrefixStyle.Base128, UseAggresiveNoAllocObjectReuse = false })
                 .SetName("No reuse"); 
             
-            yield return new TestCaseData(new QueryableOptions { PrefixStyle = PrefixStyle.Base128, UseAggresiveNoAllocObjectReuse = false })
+            yield return new TestCaseData(new QueryableOptions { PrefixStyle = PrefixStyle.Base128, UseAggresiveNoAllocObjectReuse = true })
                 .SetName("With instance reuse");
         }
 
